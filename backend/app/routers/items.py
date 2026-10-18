@@ -1,5 +1,7 @@
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
+from typing import Literal
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 
@@ -16,7 +18,7 @@ from app.models import Membership
 from fastapi import HTTPException,Header
 from app.schemas import WorkItemUpdate
 from app.workflow import validate_transition
-from app.schemas import WorkItemStatusUpdate
+from app.schemas import WorkItemStatusUpdate, WorkItemClaim
 
 
 from fastapi import Header
@@ -233,9 +235,53 @@ def assign_work_item(
 
 
 
+@router.patch("/{item_id}/claim")
+def claim_work_item(
+    item_id: int,
+    data: WorkItemClaim,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    item = db.get(WorkItem, item_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="Work item not found")
+    authorize(db=db, user=current_user, team_id=item.team_id, action="claim")
+    # Assignment and version are checked together so competing claims cannot steal ownership.
+    updated = db.execute(
+        update(WorkItem)
+        .where(
+            WorkItem.id == item_id,
+            WorkItem.version == data.expected_version,
+            WorkItem.assignee_id.is_(None),
+        )
+        .values(assignee_id=current_user.id, version=WorkItem.version + 1)
+        .returning(WorkItem.id, WorkItem.assignee_id, WorkItem.version)
+    ).first()
+    if updated is None:
+        db.rollback()
+        raise HTTPException(status_code=409, detail="This item changed or has already been assigned. Refresh and retry.")
+    db.add(ActivityEvent(
+        work_item_id=item_id,
+        actor_id=current_user.id,
+        action="claimed",
+        details=f"{current_user.name} claimed this work item",
+    ))
+    db.commit()
+    return {
+        "id": updated.id,
+        "assignee_id": updated.assignee_id,
+        "version": updated.version,
+        "message": "Work item claimed successfully",
+    }
+
+
 @router.get("")
 def get_work_items(
-    team_id: int,
+    team_id: int = Query(..., gt=0),
+    status: Literal["open", "in_progress", "resolved", "closed"] | None = None,
+    priority: Literal["low", "medium", "high", "critical"] | None = None,
+    item_type: Literal["incident", "customer_issue", "payment", "compliance", "task"] | None = None,
+    q: str | None = Query(None, max_length=200),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
@@ -247,12 +293,23 @@ def get_work_items(
         action="view"
     )
 
-    # Fetch only this team's work items
-    items = db.scalars(
-        select(WorkItem)
-        .where(WorkItem.team_id == team_id)
-        .order_by(WorkItem.id.desc())
-    ).all()
+    query = select(WorkItem, User.name).outerjoin(
+        User, User.id == WorkItem.assignee_id
+    ).where(WorkItem.team_id == team_id)
+    if status is not None:
+        query = query.where(WorkItem.status == status)
+    if priority is not None:
+        query = query.where(WorkItem.priority == priority)
+    if item_type is not None:
+        query = query.where(WorkItem.item_type == item_type)
+    if q and q.strip():
+        # Treat SQL wildcard characters as literal search text.
+        search = q.strip()
+        query = query.where(or_(
+            WorkItem.title.icontains(search, autoescape=True),
+            WorkItem.description.icontains(search, autoescape=True),
+        ))
+    items = db.execute(query.order_by(WorkItem.id.desc())).all()
 
     return [
         {
@@ -260,10 +317,14 @@ def get_work_items(
             "title": item.title,
             "status": item.status,
             "priority": item.priority,
+            "item_type": item.item_type,
+            "assignee_id": item.assignee_id,
+            "assignee_name": assignee_name,
+            "created_at": item.created_at,
             "team_id": item.team_id,
             "version": item.version
         }
-        for item in items
+        for item, assignee_name in items
     ]
 
 
@@ -306,6 +367,7 @@ def get_work_item(
         "status": item.status,
         "team_id": item.team_id,
         "assignee_id": item.assignee_id,
+        "assignee_name": db.get(User, item.assignee_id).name if item.assignee_id else None,
         "created_by": item.created_by,
         "version": item.version
     }
@@ -420,6 +482,8 @@ def change_work_item_status(
         action="edit"
     )
 
+    # Keep the original value: the ORM synchronizes item.status during update.
+    previous_status = item.status
     # 3. Validate status transition
     validate_transition(
         current_status=item.status,
@@ -459,7 +523,7 @@ def change_work_item_status(
         work_item_id=item_id,
         actor_id=current_user.id,
         action="status_changed",
-        details=f"{item.status} -> {data.status}"
+        details=f"{previous_status} -> {data.status}"
     )
 
     db.add(event)

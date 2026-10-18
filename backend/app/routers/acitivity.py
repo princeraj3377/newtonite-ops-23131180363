@@ -38,8 +38,9 @@ def get_item_activity(
     )
 
     # 3. Fetch activity history
-    events = db.scalars(
-        select(ActivityEvent)
+    events = db.execute(
+        select(ActivityEvent, User.name)
+        .join(User, User.id == ActivityEvent.actor_id)
         .where(ActivityEvent.work_item_id == item_id)
         .order_by(
             ActivityEvent.created_at.asc(),
@@ -52,9 +53,10 @@ def get_item_activity(
             "id": event.id,
             "work_item_id": event.work_item_id,
             "actor_id": event.actor_id,
+            "actor_name": actor_name,
             "action": event.action,
             "details": event.details,
             "created_at": event.created_at
         }
-        for event in events
+        for event, actor_name in events
     ]

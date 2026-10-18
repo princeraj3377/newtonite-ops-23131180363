@@ -1,0 +1,35 @@
+.item-discussion { margin-top: 28px; border-top: 1px solid #dfe5d8; }
+.discussion-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid #e5ebdd; }
+.discussion-tabs { display: flex; gap: 18px; }
+.discussion-tabs button { display: flex; align-items: center; gap: 7px; padding: 16px 0; background: none; border: 0; border-bottom: 2px solid transparent; color: #7d8976; font-size: 12px; }
+.discussion-tabs button[aria-selected="true"] { border-bottom-color: #315841; color: #254a39; font-weight: 600; }
+.discussion-tabs button > span { border-radius: 10px; padding: 1px 6px; background: #eaf0e2; font-size: 10px; }
+.item-discussion [role="tabpanel"]:focus-visible { outline: 2px solid #819c70; outline-offset: 3px; }
+.feed-state { padding: 24px 0; display: flex; align-items: center; justify-content: center; gap: 8px; color: #7a8771; font-size: 12px; text-align: center; line-height: 1.7; }
+.feed-error { flex-direction: column; }
+.feed-error p { margin: 0; }
+.comment-list, .activity-list { padding: 0; margin: 22px 0; list-style: none; }
+.comment-list > li { display: flex; gap: 10px; margin: 0 0 22px; }
+.comment-avatar { width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; background: #e8efdf; color: #557248; display: grid; place-items: center; font-size: 12px; }
+.comment-list article { min-width: 0; flex: 1; }
+.comment-meta { display: flex; flex-direction: column; gap: 5px; }
+.comment-meta strong { font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.comment-meta strong span { color: #839076; font-weight: 400; }
+.item-discussion time { color: #89947f; font-size: 10px; }
+.comment-list article > p { font-size: 13px; line-height: 1.75; white-space: pre-wrap; overflow-wrap: anywhere; margin: 9px 0 0; color: #536a4d; }
+.comment-form { border-top: 1px solid #e5ebdd; padding-top: 1px; }
+.comment-form textarea { box-sizing: border-box; width: 100%; min-height: 90px; resize: vertical; padding: 12px; background: white; border: 1px solid #dce4d5; border-radius: 8px; color: #365143; font: inherit; font-size: 13px; }
+.comment-form textarea:focus-visible { outline: 2px solid #819c70; outline-offset: 2px; }
+.comment-submit { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.comment-submit > span { font-size: 10px; color: #89947f; }
+.comment-form .primary-button { width: auto; margin: 0; padding: 11px 15px; justify-content: center; }
+.comment-form .form-alert { margin-top: 10px; }
+.comment-success { font-size: 12px; color: #477b49; }
+.activity-list > li { display: flex; gap: 12px; position: relative; padding-bottom: 24px; }
+.activity-list > li:not(:last-child)::before { content: ''; position: absolute; width: 1px; background: #dce5d3; top: 28px; bottom: 0; left: 13px; }
+.activity-marker { width: 27px; height: 27px; border-radius: 50%; background: #edf2e7; color: #758b64; display: grid; place-items: center; flex-shrink: 0; }
+.activity-list > li > div { min-width: 0; }
+.activity-list p { font-size: 12px; line-height: 1.7; margin: 2px 0 6px; overflow-wrap: anywhere; }
+.activity-list strong { font-weight: 600; }
+.activity-list .activity-details { color: #7b886e; white-space: pre-wrap; }
+@media (max-width: 380px) { .discussion-tabs { gap: 12px; } .discussion-tabs button { gap: 5px; font-size: 11px; } }

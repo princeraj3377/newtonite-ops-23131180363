@@ -8,13 +8,13 @@ from app.models import Membership, User
 ROLE_PERMISSIONS = {
     "admin": {
         "view", "create", "edit",
-        "assign", "manage_members"
+        "assign", "claim", "manage_members"
     },
     "lead": {
-        "view", "create", "edit", "assign"
+        "view", "create", "edit", "assign", "claim"
     },
     "member": {
-        "view", "create", "edit_own"
+        "view", "create", "edit_own", "claim"
     },
     "viewer": {
         "view"

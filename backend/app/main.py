@@ -6,6 +6,7 @@ from app.models import User
 from app.routers.items import router as items_router
 from app.routers.comments import router as comments_router
 from app.routers.acitivity import router as activity_router
+from app.routers.teams import router as teams_router
 
 app = FastAPI(
     title = "Newtonic Operations Api",
@@ -15,6 +16,7 @@ app.include_router(auth_router)
 app.include_router(items_router)
 app.include_router(comments_router)
 app.include_router(activity_router)
+app.include_router(teams_router)
 
 @app.get("/")
 def home():

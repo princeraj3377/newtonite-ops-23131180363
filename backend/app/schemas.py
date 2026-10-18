@@ -61,6 +61,10 @@ class WorkItemAssign(BaseModel):
 
 
 
+class WorkItemClaim(BaseModel):
+    expected_version: int = Field(ge=1)
+
+
 class WorkItemStatusUpdate(BaseModel):
     status:Literal["open","in_progress","resolved","closed"]
     expected_version:int=Field(ge=1)

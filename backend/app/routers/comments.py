@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.auth import get_current_user
 from app.permissions import authorize
-from app.models import User, WorkItem, Comment
+from app.models import User, WorkItem, Comment, ActivityEvent
 from app.schemas import CommentCreate
 
 router = APIRouter(
@@ -39,14 +39,24 @@ def create_comment(
         action="view"
     )
 
-    # 3. Create comment
+    content = data.content.strip()
+    if not content:
+        raise HTTPException(status_code=422, detail="Comment cannot be blank")
+
+    # Save the comment and its activity event in one transaction.
     comment = Comment(
         work_item_id=item.id,
         author_id=current_user.id,
-        content=data.content
+        content=content
     )
 
     db.add(comment)
+    db.add(ActivityEvent(
+        work_item_id=item.id,
+        actor_id=current_user.id,
+        action="commented",
+        details="Added a comment",
+    ))
     db.commit()
     db.refresh(comment)
 
@@ -54,7 +64,9 @@ def create_comment(
         "id": comment.id,
         "work_item_id": comment.work_item_id,
         "author_id": comment.author_id,
-        "content": comment.content
+        "content": comment.content,
+        "author_name": current_user.name,
+        "created_at": comment.created_at,
     }
 
 
@@ -79,8 +91,9 @@ def get_comments(
         action="view"
     )
 
-    comments = db.scalars(
-        select(Comment)
+    comments = db.execute(
+        select(Comment, User.name)
+        .join(User, User.id == Comment.author_id)
         .where(Comment.work_item_id == item_id)
         .order_by(Comment.id.asc())
     ).all()
@@ -89,7 +102,9 @@ def get_comments(
         {
             "id": comment.id,
             "author_id": comment.author_id,
-            "content": comment.content
+            "content": comment.content,
+            "author_name": author_name,
+            "created_at": comment.created_at,
         }
-        for comment in comments
+        for comment, author_name in comments
     ]

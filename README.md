@@ -17,6 +17,8 @@ A team-based operations management REST API built with FastAPI, PostgreSQL, SQLA
 
 ## Tech Stack
 
+Architecture decisions, permission behavior, trade-offs, and current limitations are documented in [ENGINEERING_DECISIONS.md](ENGINEERING_DECISIONS.md). See the [frontend README](frontend/README.md) for UI setup and API connection details.
+
 - Python 3.11
 - FastAPI
 - PostgreSQL 17
