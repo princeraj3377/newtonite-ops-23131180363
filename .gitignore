@@ -33,3 +33,12 @@ Thumbs.db
 # Local database files
 *.db
 *.sqlite3
+
+backend/app-config.json
+backend/*.zip
+backend/.env
+backend/.env.test
+
+# Generated AppSail package and local deployment diagnostics
+deploy-backend/
+.deployment-*

@@ -12,6 +12,7 @@ export default defineConfig(({ mode }) => {
     },
   }
   return {
+    base: '/app/',
     plugins: [react()],
     server: { proxy },
     preview: { proxy },

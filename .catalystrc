@@ -1,0 +1,30 @@
+{
+  "defaults": {
+    "project": 1,
+    "env": 1
+  },
+  "actives": {
+    "project": 1,
+    "env": 1
+  },
+  "projects": [
+    {
+      "idx": 1,
+      "id": "52141000000013058",
+      "name": "newtonite-ops",
+      "domain": {
+        "id": "50046981711",
+        "name": "newtonite-ops-60091829404.development"
+      },
+      "timezone": "Asia/Kolkata",
+      "env": [
+        {
+          "idx": 1,
+          "id": "60091829404",
+          "name": "Development",
+          "type": 3
+        }
+      ]
+    }
+  ]
+}

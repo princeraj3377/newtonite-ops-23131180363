@@ -1,0 +1,11 @@
+{
+  "appsail": [
+    {
+      "source": "deploy-backend",
+      "name": "newtonite-backend"
+    }
+  ],
+  "client": {
+    "source": "client"
+  }
+}
